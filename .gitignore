@@ -1,2 +1,28 @@
 *.class
 *.log
+.DS_Store
+
+# sbt specific
+.cache
+.history
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+# IntelliJ specific
+.idea
+
+.env
+.envrc
+
+# metals
+.bloop/
+.metals/
+project/.bloop/
+project/metals.sbt
+project/project/metals.sbt
+.bsp/
