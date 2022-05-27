@@ -40,7 +40,8 @@ What are its advantages?
 - goal: why should you use tagless final?
 - explain the material
 - show syntaxes of the 2 implementation
-- case of Barkacs Bela and Programozo Peter
+- case of Barkacs Bela
+  - task: implement a decrease money mechanism and handle when there is not enough money to decrease from
 
 References
 - https://medium.com/@olxc/type-classes-explained-a9767f64ed2c
