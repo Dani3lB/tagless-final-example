@@ -1,0 +1,5 @@
+package tagless
+
+class Api {
+
+}
