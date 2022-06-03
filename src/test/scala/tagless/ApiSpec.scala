@@ -1,6 +1,6 @@
 package tagless
 
-import model.Exceptions.UsernameIsTaken
+import model.Exceptions.{NonSufficientFunds, UserDoesNotExist, UsernameIsTaken}
 import model.User
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -24,6 +24,27 @@ class ApiSpec extends AnyWordSpec with Matchers {
       db.addUser(username)
 
       api.register(username) shouldBe Left(UsernameIsTaken())
+    }
+  }
+
+  "#decreaseMoney" should {
+    "decrease amount" in new Scope {
+      db.addUser(username)
+
+      api.decreaseMoney(username, 100) shouldBe Right(user.copy(money = user.money-100))
+    }
+
+    "return error if user does not exist" in new Scope {
+      db.addUser(username)
+
+      api.decreaseMoney("doesnotexist", 100) shouldBe Left(UserDoesNotExist())
+    }
+
+    "return error if there is not enough money to decrease" in new Scope {
+      db.addUser(username)
+
+      api.decreaseMoney(username, 999)
+      api.decreaseMoney(username, 100) shouldBe Left(NonSufficientFunds())
     }
   }
 

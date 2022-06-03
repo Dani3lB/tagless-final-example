@@ -27,5 +27,11 @@ class InMemoryDatabaseInstance[F[_]: Applicative] extends Database[F] { // F has
     Applicative[F].pure(user)
   }
 
-  override def decreaseMoney(name: String, amount: Int): F[User] = ???
+  override def decreaseMoney(name: String, amount: Int): F[User] = {
+    val idx = users.indexWhere(_.name == name)
+    val user = users(idx)
+    val modifiedUser = user.copy(money = user.money - amount)
+    users.update(idx, modifiedUser)
+    Applicative[F].pure(modifiedUser)
+  }
 }

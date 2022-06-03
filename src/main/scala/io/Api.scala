@@ -15,6 +15,6 @@ class Api(implicit database: Database) {
     } yield newUser
   }
 
-  def decreaseMoney(name: String, amount: Int): IO[User] = ???
+  def decreaseMoney(name: String, amount: Int): IO[User] = database.decreaseMoney(name, amount)
 
 }

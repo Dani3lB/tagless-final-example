@@ -25,4 +25,12 @@ class DatabaseSpec extends AnyWordSpec with Matchers {
     }
   }
 
+  "#decreaseMoney" should {
+    "decrease amount" in new Scope {
+      db.addUser(username)
+
+      db.decreaseMoney(username, 100) shouldBe Right(user.copy(money = user.money-100))
+    }
+  }
+
 }

@@ -29,4 +29,12 @@ class ApiSpec extends AnyWordSpec with Matchers {
       api.register(username).attempt.unsafeRunSync() shouldBe Left(UsernameIsTaken())
     }
   }
+
+  "#decreaseMoney" should {
+    "decrease money" in new Scope {
+      db.addUser(username).unsafeRunSync()
+
+      api.decreaseMoney(username, 100).unsafeRunSync() shouldBe user.copy(money = user.money-100)
+    }
+  }
 }

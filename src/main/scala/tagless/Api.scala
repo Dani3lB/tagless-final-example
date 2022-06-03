@@ -3,7 +3,7 @@ package tagless
 import cats.MonadThrow
 import cats.syntax.flatMap._
 import cats.syntax.functor._
-import model.Exceptions.UsernameIsTaken
+import model.Exceptions.{NonSufficientFunds, UserDoesNotExist, UsernameIsTaken}
 import model.User
 
 trait Api[F[_]] {
@@ -26,5 +26,13 @@ class ApiInstance[F[_]: MonadThrow: Database] extends Api[F] {
     } yield newUser
   }
 
-  override def decreaseMoney(name: String, amount: Int): F[User] = ???
+  override def decreaseMoney(name: String, amount: Int): F[User] = {
+    for {
+      maybeExistingUser <- Database[F].getUser(name)
+      newUser <- maybeExistingUser match {
+        case None => MonadThrow[F].raiseError(UserDoesNotExist())
+        case Some(user) => if(user.money - amount >= 0) Database[F].decreaseMoney(name, amount) else MonadThrow[F].raiseError(NonSufficientFunds())
+      }
+    } yield newUser
+  }
 }

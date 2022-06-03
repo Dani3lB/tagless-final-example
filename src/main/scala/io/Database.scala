@@ -1,6 +1,7 @@
 package io
 
 import cats.effect.IO
+import model.Exceptions.{NonSufficientFunds, UserDoesNotExist}
 import model.User
 
 import scala.collection.mutable
@@ -17,5 +18,19 @@ class Database {
     IO.pure(user)
   }
 
-  def decreaseMoney(name: String, amount: Int): IO[User] = ???
+  def decreaseMoney(name: String, amount: Int): IO[User] = {
+    val idx = users.indexWhere(_.name == name)
+    if (idx == -1) {
+      IO.raiseError(new UserDoesNotExist)
+    } else {
+      val user = users(idx)
+      if (user.money - amount < 0) {
+        IO.raiseError(new NonSufficientFunds)
+      } else {
+        val modifiedUser = user.copy(money = user.money - amount)
+        users.update(idx, modifiedUser)
+        IO.pure(modifiedUser)
+      }
+    }
+  }
 }
