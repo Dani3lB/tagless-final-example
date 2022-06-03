@@ -41,6 +41,7 @@ What are its advantages?
 - explain the material
 - show syntaxes of the 2 implementation
 - case of Barkacs Bela
+  - application: money handler backend with registration already done 
   - task: implement a decrease money mechanism and handle when there is not enough money to decrease from
 
 References
