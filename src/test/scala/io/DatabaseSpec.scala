@@ -37,8 +37,6 @@ class DatabaseSpec extends AnyWordSpec with Matchers {
     }
 
     "return error if user does not exist" in new Scope {
-      db.addUser(username).unsafeRunSync()
-
       db.decreaseMoney("doesnotexist", 100).attempt.unsafeRunSync() shouldBe Left(UserDoesNotExist())
     }
 
