@@ -22,16 +22,20 @@ class InMemoryDatabaseInstance[F[_]: Applicative] extends Database[F] { // F has
   override def getUser(name: String): F[Option[User]] = Applicative[F].pure(users.find(_.name == name))
 
   override def addUser(name: String): F[User] = {
-    val user = User(name, startingMoney)
-    users.append(user)
-    Applicative[F].pure(user)
+    Applicative[F].pure {
+      val user = User(name, startingMoney)
+      users.append(user)
+      user
+    }
   }
 
   override def decreaseMoney(name: String, amount: Int): F[User] = {
-    val idx = users.indexWhere(_.name == name)
-    val user = users(idx)
-    val modifiedUser = user.copy(money = user.money - amount)
-    users.update(idx, modifiedUser)
-    Applicative[F].pure(modifiedUser)
+    Applicative[F].pure{
+      val idx = users.indexWhere(_.name == name)
+      val user = users(idx)
+      val modifiedUser = user.copy(money = user.money - amount)
+      users.update(idx, modifiedUser)
+      modifiedUser
+    }
   }
 }

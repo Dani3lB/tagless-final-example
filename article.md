@@ -164,8 +164,133 @@ def decreaseMoney(name: String, amount: Int): IO[User] = {
 
 Great, he finished the database. Let's see the API layer:
 
+```scala
+class Api(implicit database: Database) {
+  def register(name: String): IO[User] = {
+    for {
+      maybeExistingUser <- database.getUser(name)
+      newUser <- maybeExistingUser match {
+        case None => database.addUser(name)
+        case Some(_) => IO.raiseError(UsernameIsTaken())
+      }
+    } yield newUser
+  }
+}
+```
+
+It should be really easy to extend it, let's try:
+
+```scala
+"#decreaseMoney" should {
+  "decrease money" in new Scope {
+    db.addUser(username).unsafeRunSync()
+
+    api.decreaseMoney(username, 100).unsafeRunSync() shouldBe user.copy(money = user.money-100)
+  }
+}
+```
+
+```scala
+def decreaseMoney(name: String, amount: Int): IO[User] = database.decreaseMoney(name, amount)
+```
+
+Well, that was actually easy. Peter handled every edge case in the database class, so now he just has to call it.
+This went quite well. Can it become better, with tagless final? Let's see.
+
+### With tagless final
+
+As in the case with IO, Peter checks the database class first.
+
+```scala
+trait Database[F[_]] {
+  def getUser(name: String): F[Option[User]]
+  def addUser(name: String): F[User]
+  def decreaseMoney(name: String, amount: Int): F[User]
+}
+
+object Database {
+  def apply[F[_]](implicit database: Database[F]): Database[F] = database
+}
+
+class InMemoryDatabaseInstance[F[_]: Applicative] extends Database[F] {
+  private val startingMoney = 1000
+  private val users: mutable.ArrayDeque[User] = mutable.ArrayDeque.empty
+
+  override def getUser(name: String): F[Option[User]] = Applicative[F].pure(users.find(_.name == name))
+
+  override def addUser(name: String): F[User] = {
+    Applicative[F].pure {
+      val user = User(name, startingMoney)
+      users.append(user)
+      user
+    }
+  }
+}
+```
+
+Looks simple. Peter starts with a test without hesitation:
+
+```scala
+trait Scope {
+  val db: Database[Either[Throwable, *]] = new InMemoryDatabaseInstance[Either[Throwable, *]]()
+
+  val username = "name"
+  val user: User = User(username, 1000)
+}
+
+"#decreaseMoney" should {
+  "decrease amount" in new Scope {
+    db.addUser(username)
+
+    db.decreaseMoney(username, 100) shouldBe Right(user.copy(money = user.money-100))
+  }
+}
+```
+
+For testing, he uses Either as an effect type, so the tests will be pure. He don't have to pay attention to unsafeRunSync
+in this case. The implementation:
+
+```scala
+override def decreaseMoney(name: String, amount: Int): F[User] = {
+  Applicative[F].pure{
+    val idx = users.indexWhere(_.name == name)
+    val user = users(idx)
+    val modifiedUser = user.copy(money = user.money - amount)
+    users.update(idx, modifiedUser)
+    modifiedUser
+  }
+}
+```
+
+It's quite similar to the IO case so far. Let's see the error cases! Oh wait... we can't. Peter would like to implement
+the case when the user is not found, but he can't raise an error because of the applicative. Because of this, he
+immediately checks the API layer:
+
+```scala
+trait Api[F[_]] {
+  def register(name: String): F[User]
+  def decreaseMoney(name: String, amount: Int): F[User]
+}
+
+object Api {
+  def apply[F[_]](implicit api: Api[F]): Api[F] = api
+}
+
+class ApiInstance[F[_]: MonadThrow: Database] extends Api[F] {
+  override def register(name: String): F[User] = {
+    for {
+      maybeExistingUser <- Database[F].getUser(name)
+      newUser <- maybeExistingUser match {
+        case None => Database[F].addUser(name)
+        case Some(_) => MonadThrow[F].raiseError(UsernameIsTaken())
+      }
+    } yield newUser
+  }
+}
+```
+
+Aha! The error handling is in the API layer, which can be seen right away from the MonadThrow context bound.
 
 TODO:
-- IO api part
 - Tagless final part
 - Summary
