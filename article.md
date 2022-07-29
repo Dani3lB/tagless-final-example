@@ -4,7 +4,7 @@
 
 This article is for scala developers who have heard about tagless final
 but don't know if they should use it in application development or not. Some concepts which should be familiar to you:
-scala, context bound, type class, and the tagless final itself
+scala, context bound, type class, and the tagless final itself.
 
 The tagless final pattern is a very controversial topic in the case of application development, and I don't want to convince anyone.
 I intend to tell you about my opinion and why would I use it in every scala program.
@@ -33,13 +33,13 @@ an example which I can explain afterward.
 
 ## In practice
 Look at the case of Programmer Peter. His company wants to create a money handler application, and the registration
-is already done. Peter's task is to implement a decrease money mechanism on the backend and handle when there is
+is already done. Peter's task is to implement a money decreaser mechanism on the backend and handle when there is
 not enough money to decrease from. Let's see Peter's journey if the application is written without tagless final and with it.
 
 ### Without tagless final
 
 In this case, the application uses cats IO as an effect type, and that is hard-coded everywhere. Peter checks the project
-structure: database layer; API layer; and the endpoint. He decides to start from the bottom and checks the database class:
+structure: database layer; API layer; and the endpoint. He decides to start from the bottom which is the database class:
 
 ```scala
 class Database {
