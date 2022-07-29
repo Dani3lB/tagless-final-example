@@ -3,11 +3,11 @@
 ## What is this article about?
 
 This article is for scala developers who have heard about tagless final
-but don't know if they should use it application development or not. Some concepts which should be familiar for you:
-scala, context bound, typeclass, and tagless final itself
+but don't know if they should use it in application development or not. Some concepts which should be familiar to you:
+scala, context bound, type class, and the tagless final itself
 
-Tagless final is a very controversial topic in case of application development, and I don't want to convince anyone.
-My intention is to tell you about my opinion and why would I use it in every scala program.
+The tagless final pattern is a very controversial topic in the case of application development, and I don't want to convince anyone.
+I intend to tell you about my opinion and why would I use it in every scala program.
 
 ## Advantages of tagless final
 
@@ -16,9 +16,9 @@ Tagless final is nothing new but programming to an interface. This comes with a 
 2. Easily change the concrete effect you are working with (for example from scala Future to cats IO)
 
 These are trivial and agreed by everyone as a good thing, but some say it is not worth it to use tagless final
-in application development, because the first is for libs and the second happens rarely.
+in application development because the first is for libs and the second happens rarely.
 
-I agree with them, I wouldn't use it for the second one only neither. But there is another less known advantage, the
+I agree with them, I wouldn't use it for the second one only either. But there is another less known advantage, the
 **least power principle**.
 
 ## Least power principle
@@ -29,12 +29,12 @@ Originally, the least power principle (or rule of least power) was created for p
 I think the same is true for every part of a program, including every layer and class. I would say something like:
 "A class should **not be able** to do more than it is intended".
 Maybe you say, how could a class do more than it is intended? Instead of lengthy explanations let me jump right into
-an example which I can explain afterwards.
+an example which I can explain afterward.
 
 ## In practice
 Look at the case of Programmer Peter. His company wants to create a money handler application, and the registration
 is already done. Peter's task is to implement a decrease money mechanism on the backend and handle when there is
-not enough money to decrease from. Let's see Peters journey if the application is written without tagless final and with it.
+not enough money to decrease from. Let's see Peter's journey if the application is written without tagless final and with it.
 
 ### Without tagless final
 
@@ -129,8 +129,8 @@ And the last one:
 }
 ```
 
-Whoops! Working with side effects is not easy, and Peter have made a mistake. The db.addUser is called but not ran, so this
-test will fail with UserDoesNotExist. Fortunately it is easy to understand why and fix it, but he has to pay attention to this
+Whoops! Working with side effects is not easy, and Peter has made a mistake. The db.addUser is called but not run, so this
+test will fail with UserDoesNotExist. Fortunately, it is easy to understand why and fix it, but he has to pay attention to this
 in the future. The fixed test and the implementation:
 
 ```scala
@@ -194,7 +194,7 @@ It should be really easy to extend it, let's try:
 def decreaseMoney(name: String, amount: Int): IO[User] = database.decreaseMoney(name, amount)
 ```
 
-Well, that was actually easy. Peter handled every edge case in the database class, so now he just has to call it.
+Well, that was easy. Peter handled every edge case in the database class, so now he just has to call it.
 This went quite well. Can it become better, with tagless final? Let's see.
 
 ### With tagless final
@@ -247,7 +247,7 @@ trait Scope {
 }
 ```
 
-For testing, he uses Either as an effect type, so the tests will be pure. He don't have to pay attention to unsafeRunSync
+For testing, he uses Either as an effect type, so the tests will be pure. He doesn't have to pay attention to unsafeRunSync
 in this case. The implementation:
 
 ```scala
@@ -342,16 +342,16 @@ This is the completed task with tagless final. Is it better? I think yes. Here a
 
 ## Summary
 
-As you can see, it the second, tagless final solution the functions inside the layers are consistent. Error handling
-only happens in the API layer, so the database layer has less ownership, less *power*. This is the least power principle,
+As you can see, in the second, tagless final solution the functions inside the layers are consistent. Error handling
+only happens in the API layer, so the database layer has less ownership, and less *power*. This is the least power principle,
 and it can be forced with this approach. Well... can it be really forced? Actually no, Peter could have changed the context
-bound to MonadThrow and to the very same thing as in the IO case. It depends on team culture and experience.
+bound to MonadThrow and done the very same thing as in the IO case. It depends on team culture and experience.
 
-But it helps testing without a doubt, right? Well, no. Of course working with effects can lead to strange issues, but
+But it helps testing without a doubt, right? Well, no. Of course, working with effects can lead to strange issues, but
 for example, Peter could have used for comprehension in the IO test cases to not have that issue. Again, it depends
 on taste and experience.
 
 Why is it good then? I don't think this approach is always good, but I think it's good for me. I think teams should decide
-if the added complexity is worth it or not. For example, new colleagues may have hard time to understand this kind of
-programming to interfaces approach, especially if the are new to scala too. However, in a well established team, I think
+if the added complexity is worth it or not. For example, new colleagues may have a hard time understanding this kind of
+programming to interfaces approach, especially if they are new to scala too. However, in a well-established team, I think
 tagless final can improve the quality of the application.
