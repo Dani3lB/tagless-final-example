@@ -263,8 +263,8 @@ override def decreaseMoney(name: String, amount: Int): F[User] = {
 ```
 
 It's quite similar to the IO case so far. Let's see the error cases! Oh wait... we can't. Peter would like to implement
-the case when the user is not found, but he can't raise an error because of the applicative. Because of this, he
-immediately checks the API layer:
+the case when the user is not found, but he can't raise an error because of the Applicative context bound. Because of this, he
+checks the API layer:
 
 ```scala
 trait Api[F[_]] {
@@ -290,7 +290,68 @@ class ApiInstance[F[_]: MonadThrow: Database] extends Api[F] {
 ```
 
 Aha! The error handling is in the API layer, which can be seen right away from the MonadThrow context bound.
+Peter continues with a test, which is the same happy path as in the InMemoryDatabaseInstance class. I think you get that
+and the corresponding implementation by now, so let's jump to the error case:
 
-TODO:
-- Tagless final part
-- Summary
+```scala
+"return error if user does not exist" in new Scope {
+  db.addUser(username)
+
+  api.decreaseMoney("doesnotexist", 100) shouldBe Left(UserDoesNotExist())
+}
+```
+
+The implementation:
+
+```scala
+override def decreaseMoney(name: String, amount: Int): F[User] = {
+  for {
+    maybeExistingUser <- Database[F].getUser(name)
+    newUser <- maybeExistingUser match {
+      case None => MonadThrow[F].raiseError(UserDoesNotExist())
+      case Some(user) => Database[F].decreaseMoney(name, amount)
+    }
+  } yield newUser
+}
+```
+
+And the case when there is not enough balance:
+
+```scala
+"return error if there is not enough money to decrease" in new Scope {
+  db.addUser(username)
+
+  api.decreaseMoney(username, 999)
+  api.decreaseMoney(username, 100) shouldBe Left(NonSufficientFunds())
+}
+```
+
+```scala
+override def decreaseMoney(name: String, amount: Int): F[User] = {
+  for {
+    maybeExistingUser <- Database[F].getUser(name)
+    newUser <- maybeExistingUser match {
+      case None => MonadThrow[F].raiseError(UserDoesNotExist())
+      case Some(user) => if(user.money - amount >= 0) Database[F].decreaseMoney(name, amount) else MonadThrow[F].raiseError(NonSufficientFunds())
+    }
+  } yield newUser
+}
+```
+
+This is the completed task with tagless final. Is it better? I think yes. Here are my thoughts:
+
+## Summary
+
+As you can see, it the second, tagless final solution the functions inside the layers are consistent. Error handling
+only happens in the API layer, so the database layer has less ownership, less *power*. This is the least power principle,
+and it can be forced with this approach. Well... can it be really forced? Actually no, Peter could have changed the context
+bound to MonadThrow and to the very same thing as in the IO case. It depends on team culture and experience.
+
+But it helps testing without a doubt, right? Well, no. Of course working with effects can lead to strange issues, but
+for example, Peter could have used for comprehension in the IO test cases to not have that issue. Again, it depends
+on taste and experience.
+
+Why is it good then? I don't think this approach is always good, but I think it's good for me. I think teams should decide
+if the added complexity is worth it or not. For example, new colleagues may have hard time to understand this kind of
+programming to interfaces approach, especially if the are new to scala too. However, in a well established team, I think
+tagless final can improve the quality of the application.
