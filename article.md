@@ -351,7 +351,7 @@ But it helps testing without a doubt, right? Well, no. Of course, working with e
 for example, Peter could have used for comprehension in the IO test cases to not have that issue. Again, it depends
 on taste and experience.
 
-Why is it good then? I don't think this approach is always good, but I think it's good for me. I think teams should decide
+Why is it good then? I don't think this approach is always good, but it's good for me. I think teams should decide
 if the added complexity is worth it or not. For example, new colleagues may have a hard time understanding this kind of
 programming to interfaces approach, especially if they are new to scala too. However, in a well-established team, I think
 tagless final can improve the quality of the application.
