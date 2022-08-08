@@ -228,6 +228,9 @@ class InMemoryDatabaseInstance[F[_]: Applicative] extends Database[F] {
 }
 ```
 
+(Note: in `addUser` the pure around the append is not that elegant, but for the example and for the consistency with
+the IO case I'll leave it like this for now.)
+
 Looks simple. Peter starts with a test without hesitation:
 
 ```scala
