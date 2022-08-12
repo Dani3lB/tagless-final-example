@@ -30,9 +30,11 @@ class Database {
         if (user.money - amount < 0) {
           IO.raiseError(new NonSufficientFunds)
         } else {
-          val modifiedUser = user.copy(money = user.money - amount)
-          users.update(idx, modifiedUser)
-          IO.pure(modifiedUser)
+          IO.apply {
+            val modifiedUser = user.copy(money = user.money - amount)
+            users.update(idx, modifiedUser)
+            modifiedUser
+          }
         }
       }
     }

@@ -109,10 +109,12 @@ def decreaseMoney(name: String, amount: Int): IO[User] = {
     if (idx == -1) {
       IO.raiseError(new UserDoesNotExist)
     } else {
-      val user = users(idx)
-      val modifiedUser = user.copy(money = user.money - amount)
-      users.update(idx, modifiedUser)
-      IO.pure(modifiedUser)
+      IO.apply {
+        val user = users(idx)
+        val modifiedUser = user.copy(money = user.money - amount)
+        users.update(idx, modifiedUser)
+        modifiedUser
+      }
     }
   }
 }
@@ -153,9 +155,11 @@ def decreaseMoney(name: String, amount: Int): IO[User] = {
       if (user.money - amount < 0) {
         IO.raiseError(new NonSufficientFunds)
       } else {
-        val modifiedUser = user.copy(money = user.money - amount)
-        users.update(idx, modifiedUser)
-        IO.pure(modifiedUser)
+        IO.apply {
+          val modifiedUser = user.copy(money = user.money - amount)
+          users.update(idx, modifiedUser)
+          modifiedUser
+        }
       }
     }
   }
